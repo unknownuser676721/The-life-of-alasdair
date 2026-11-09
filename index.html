@@ -1,0 +1,563 @@
+
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>The Life of Alasdair</title>
+
+<style>
+
+*{box-sizing:border-box}
+
+body{margin:0;background:#0b1222;color:#f2f5ff;font-family:Arial;padding:16px}
+
+header,.card{background:#17243c;border:1px solid #304361;border-radius:16px;padding:17px;margin-bottom:14px}
+
+h1{margin:0;color:#83b5ff}
+
+h2{margin-top:0}
+
+.muted{color:#aab8d0;font-size:14px}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.stat{background:#101b30;padding:12px;border-radius:10px}
+
+button{background:#315b99;color:white;border:0;border-radius:10px;padding:12px;margin:4px 2px;font-size:14px;cursor:pointer}
+
+button:disabled{opacity:.4}
+
+.choice{display:block;width:100%;text-align:left;background:#243c60;margin:9px 0;padding:15px}
+
+.choice small{display:block;color:#b7c9e5;margin-top:5px}
+
+.tabs{display:flex;flex-wrap:wrap;gap:4px}
+
+.tabs button{flex:1}
+
+#choices{margin-top:14px}
+
+.log,.person{background:#101b30;border-radius:10px;padding:12px;margin:8px 0}
+
+.bar{height:7px;background:#30415c;border-radius:8px;margin-top:6px}
+
+.fill{height:100%;background:#78b5ff;border-radius:8px}
+
+.message{padding:12px;background:#29466b;border-radius:12px;margin:8px 0}
+
+.me{background:#24604e;text-align:right}
+
+.hidden{display:none}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>🎮 The Life of Alasdair</h1>
+
+<p class="muted">A Paisley life simulator</p>
+
+<div id="date">Monday · Week 1</div>
+
+<h2 id="clock">7:30 AM</h2>
+
+<div>💷 Money: <b id="money">£15</b></div>
+
+</header>
+
+<div class="card">
+
+<h2>🧑🏻 Alasdair</h2>
+
+<p>Age 13 · Paisley, Scotland</p>
+
+<p>🏫 Paisley Grammar School</p>
+
+<p>⚽ St Mirren supporter · 🎮 PS5</p>
+
+<p>📱 Black iPhone 17</p>
+
+<div class="stats" id="stats"></div>
+
+</div>
+
+<div class="card">
+
+<div class="tabs">
+
+<button onclick="tab('life')">🏠 Life</button>
+
+<button onclick="tab('phone')">📱 Phone</button>
+
+<button onclick="tab('people')">👥 People</button>
+
+<button onclick="tab('school')">🏫 School</button>
+
+</div>
+
+</div>
+
+<div id="life" class="card">
+
+<h2 id="eventTitle">Monday morning</h2>
+
+<p class="muted" id="eventText">It's 7:30 AM. Alasdair needs to get ready for school.</p>
+
+<div id="choices"></div>
+
+</div>
+
+<div id="phone" class="card hidden">
+
+<h2>📱 iPhone 17</h2>
+
+<p>Battery: 84% · Black</p>
+
+<button onclick="app('messages')">💬 Messages</button>
+
+<button onclick="app('social')">📸 Socials</button>
+
+<button onclick="app('games')">🎮 Games</button>
+
+<button onclick="app('music')">🎵 Music</button>
+
+<button onclick="app('calendar')">🗓️ Calendar</button>
+
+<div id="phoneContent"></div>
+
+</div>
+
+<div id="people" class="card hidden">
+
+<h2>Alasdair's people</h2>
+
+<div class="person">😎 <b>Rouvin</b><p>Close mate.</p></div>
+
+<div class="person">😂 <b>Robbie</b><p>Close mate.</p></div>
+
+<div class="person">🎭 <b>Mr Ennis</b><p>Close mate.</p></div>
+
+<div class="person">🥥 <b>Mama Coco</b><p>Close mate.</p></div>
+
+<div class="person">🏠 <b>Alasdair's Mum and Dad</b><p>Relaxed but have rules. Alasdair is an only child.</p></div>
+
+</div>
+
+<div id="school" class="card hidden">
+
+<h2>🏫 Paisley Grammar School</h2>
+
+<p>Average student. Favourite subject: PE. Least favourite: History.</p>
+
+<p>Monday: 7 lessons · 3:40 PM finish</p>
+
+<p>Tuesday: 7 lessons · 3:40 PM finish</p>
+
+<p>Wednesday: 6 lessons · 2:50 PM finish</p>
+
+<p>Thursday: 7 lessons · 3:40 PM finish</p>
+
+<p>Friday: 6 lessons · 2:50 PM finish</p>
+
+</div>
+
+<div class="card">
+
+<h2>📖 Recent events</h2>
+
+<div id="log"></div>
+
+</div>
+
+<div class="card">
+
+<h2>💾 Save game</h2>
+
+<p class="muted">Five save slots. Saving is manual.</p>
+
+<div id="saves"></div>
+
+<button onclick="newGame()">New game</button>
+
+</div>
+
+<script>
+
+const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+
+const longDays=[0,1,3];
+
+const finish=d=>longDays.includes(d)?940:890;
+
+function fresh(){
+
+return {
+
+age:13,money:15,happiness:75,health:90,
+
+confidence:50,reputation:50,day:0,week:1,
+
+time:450,schoolDone:false,
+
+log:["Alasdair's story begins."],
+
+messages:[],relationshipKnown:false,
+
+girlfriendIntroduced:false,
+
+friends:{Rouvin:50,Robbie:50,"Mr Ennis":50,"Mama Coco":50}
+
+};
+
+}
+
+let s=fresh();
+
+function tab(name){
+
+["life","phone","people","school"].forEach(x=>
+
+document.getElementById(x).classList.toggle("hidden",x!==name));
+
+}
+
+function log(t){s.log.unshift(t);s.log=s.log.slice(0,12)}
+
+function clamp(){
+
+["happiness","health","confidence","reputation"].forEach(k=>
+
+s[k]=Math.max(0,Math.min(100,s[k])));
+
+s.money=Math.max(0,s.money);
+
+}
+
+function timeText(t){
+
+let h=Math.floor(t/60),m=t%60;
+
+let suffix=h>=12?"PM":"AM";
+
+h=h%12||12;
+
+return h+":"+String(m).padStart(2,"0")+" "+suffix;
+
+}
+
+function advance(n){
+
+s.time+=n;
+
+while(s.time>=1440){
+
+s.time-=1440;
+
+s.day=(s.day+1)%7;
+
+if(s.day===0){
+
+s.week++;
+
+s.money+=15;
+
+log("💷 Alasdair received £15 pocket money.");
+
+}
+
+s.schoolDone=false;
+
+log("🌅 A new day begins: "+days[s.day]+".");
+
+}
+
+}
+
+function update(){
+
+clamp();
+
+document.getElementById("money").textContent="£"+s.money;
+
+document.getElementById("date").textContent=
+
+days[s.day]+" · Week "+s.week+" · Age "+s.age;
+
+document.getElementById("clock").textContent=timeText(s.time);
+
+let names=["Happiness","Health","Confidence","Reputation"];
+
+let keys=["happiness","health","confidence","reputation"];
+
+document.getElementById("stats").innerHTML=keys.map((k,i)=>
+
+`<div class="stat">${names[i]}: ${s[k]}/100
+
+<div class="bar"><div class="fill" style="width:${s[k]}%"></div></div></div>`
+
+).join("");
+
+document.getElementById("log").innerHTML=s.log.map(x=>
+
+`<div class="log">${x}</div>`).join("");
+
+render();
+
+}
+
+function event(title,text,options){
+
+document.getElementById("eventTitle").textContent=title;
+
+document.getElementById("eventText").textContent=text;
+
+document.getElementById("choices").innerHTML="";
+
+options.forEach(o=>{
+
+let b=document.createElement("button");
+
+b.className="choice";
+
+b.innerHTML=o[0]+"<small>"+o[1]+"</small>";
+
+b.onclick=()=>{o[2]();update()};
+
+document.getElementById("choices").appendChild(b);
+
+});
+
+}
+
+function introduceMaisy(){
+
+s.girlfriendIntroduced=true;
+
+s.relationshipKnown=true;
+
+s.messages.push(["Maisy","Heyyy ❤️ see you tomorrow x",false]);
+
+log("❤️ Alasdair's girlfriend Maisy is introduced. They've been together around 6–9 months.");
+
+event("A message from Maisy ❤️",
+
+"Alasdair gets a message from Maisy. They've been together for around 6–9 months. They're really happy together, although Alasdair can still get shy around her at school.",
+
+[
+
+["Reply to Maisy ❤️","2 minutes",()=>{advance(2);s.messages.push(["You","Heyyy ❤️",true]);s.happiness+=3;log("Alasdair replied to Maisy.");}],
+
+["Leave the message for later","No time passes",()=>{log("Alasdair decided to reply later.");}],
+
+["Ask what she's doing tomorrow","3 minutes",()=>{advance(3);s.messages.push(["You","What you doing tomorrow? ❤️",true]);s.happiness+=2;log("Alasdair made plans to speak to Maisy.");}]
+
+]);
+
+}
+
+function render(){
+
+let d=s.day,t=s.time;
+
+if(!s.girlfriendIntroduced && s.week===1 && d===0 && t>=525){
+
+introduceMaisy();
+
+return;
+
+}
+
+if(d<5&&!s.schoolDone&&t<finish(d)){
+
+if(t<480){
+
+event("Monday morning","It's 7:30 AM. Alasdair needs to get ready for school.",[
+
+["Get dressed and have breakfast","35 minutes",()=>{advance(35);s.health++;log("Alasdair got ready for school.");}],
+
+["Stay in bed scrolling","15 minutes",()=>{advance(15);s.happiness+=2;log("Alasdair stayed in bed.");}],
+
+["Check his phone","5 minutes",()=>{advance(5);log("Alasdair checked his phone.");}]
+
+]);return;
+
+}
+
+if(t<525){
+
+event("Getting to school","Alasdair needs to get to Paisley Grammar.",[
+
+["Walk to school","15 minutes",()=>{advance(15);log("Alasdair walked to school.");}],
+
+["Ask Mum for a lift","10 minutes",()=>{advance(10);log("Alasdair got a lift.");}],
+
+["Meet Rouvin on the way","20 minutes",()=>{advance(20);s.happiness+=2;log("Alasdair met Rouvin.");}]
+
+]);return;
+
+}
+
+event("At school","What should Alasdair do?",[
+
+["Pay attention in class","45 minutes",()=>{advance(45);s.confidence++;log("Alasdair paid attention.");}],
+
+["Go to PE","45 minutes · Favourite subject",()=>{advance(45);s.health+=3;s.happiness+=4;log("Alasdair enjoyed PE.");}],
+
+["Chat with a mate","10 minutes",()=>{advance(10);s.happiness+=2;log("Alasdair had a laugh with his mates.");}],
+
+["Mess about in class","20 minutes · Risk of being told off",()=>{advance(20);s.happiness+=3;if(Math.random()<.3){s.reputation-=2;log("A teacher told Alasdair off.");}else log("Alasdair messed about.");}],
+
+["Go to History","45 minutes · Least favourite",()=>{advance(45);s.happiness-=2;log("Alasdair sat through History.");}]
+
+]);return;
+
+}
+
+if(d<5&&!s.schoolDone){
+
+s.schoolDone=true;
+
+log("🔔 School finished for the day.");
+
+}
+
+event(d<5?"After school":"Weekend",
+
+d<5?"School is finished. What should Alasdair do?":"No school today! What should Alasdair do?",[
+
+["Play PS5","1 hour",()=>{advance(60);s.happiness+=5;log("Alasdair played PS5.");}],
+
+["Play football","90 minutes",()=>{advance(90);s.health+=4;s.happiness+=5;log("Alasdair played football.");}],
+
+["Hang out with the boys","2 hours",()=>{advance(120);s.happiness+=6;Object.keys(s.friends).forEach(k=>s.friends[k]++);log("Alasdair hung out with his mates.");}],
+
+["Have something to eat","30 minutes",()=>{advance(30);s.health+=2;log("Alasdair had something to eat.");}],
+
+["Go to sleep","8 hours",()=>{advance(480);s.health+=12;s.happiness+=2;log("Alasdair went to sleep.");}],
+
+...(s.girlfriendIntroduced?[["Spend time with Maisy ❤️","1 hour",()=>{advance(60);s.happiness+=5;log("Alasdair spent time with Maisy.");}]]:[])
+
+]);
+
+}
+
+function app(which){
+
+let c=document.getElementById("phoneContent");
+
+if(which==="messages"){
+
+c.innerHTML="<h3>💬 Messages</h3>";
+
+if(!s.messages.length)c.innerHTML+="<p>No messages yet.</p>";
+
+s.messages.forEach(m=>{
+
+c.innerHTML+=`<div class="message ${m[2]?"me":""}"><b>${m[0]}</b><br>${m[1]}</div>`;
+
+});
+
+if(s.girlfriendIntroduced)c.innerHTML+='<button onclick="reply()">Reply to Maisy · 2 minutes</button>';
+
+}
+
+if(which==="social")c.innerHTML="<h3>📸 Socials</h3><p>No new notifications. Your feed is quiet.</p><button onclick='phoneTime(10,\"Alasdair scrolled through socials.\")'>Scroll · 10 minutes</button>";
+
+if(which==="games")c.innerHTML="<h3>🎮 Games</h3><p>Alasdair's PS5 is at home. Play it from the Life tab.</p>";
+
+if(which==="music")c.innerHTML="<h3>🎵 Music</h3><button onclick='phoneTime(20,\"Alasdair listened to music.\")'>Listen · 20 minutes</button>";
+
+if(which==="calendar")c.innerHTML="<h3>🗓️ Calendar</h3><p>"+days[s.day]+" · Week "+s.week+"</p>";
+
+}
+
+function reply(){
+
+s.messages.push(["You","Heyy, what you doing? ❤️",true]);
+
+advance(2);s.happiness++;log("Alasdair replied to Maisy.");
+
+app("messages");update();
+
+}
+
+function phoneTime(n,message){advance(n);s.happiness++;log(message);update();}
+
+function newGame(){
+
+if(confirm("Start a completely new Alasdair story?")){
+
+s=fresh();tab("life");update();saves();
+
+}
+
+}
+
+function save(slot){
+
+localStorage.setItem("alasdairSave"+slot,JSON.stringify(s));
+
+alert("Game saved in slot "+slot+"!");
+
+saves();
+
+}
+
+function load(slot){
+
+let data=localStorage.getItem("alasdairSave"+slot);
+
+if(data){s=JSON.parse(data);tab("life");update();alert("Game loaded!");}
+
+else alert("This save slot is empty.");
+
+}
+
+function saves(){
+
+let el=document.getElementById("saves");
+
+el.innerHTML="";
+
+for(let i=1;i<=5;i++){
+
+let exists=localStorage.getItem("alasdairSave"+i);
+
+let div=document.createElement("div");
+
+div.className="person";
+
+div.innerHTML="<b>Save slot "+i+"</b><p>"+(exists?"Saved game":"Empty slot")+"</p>";
+
+let a=document.createElement("button");
+
+a.textContent="Save here";a.onclick=()=>save(i);
+
+let b=document.createElement("button");
+
+b.textContent="Load";b.disabled=!exists;b.onclick=()=>load(i);
+
+div.append(a,b);el.append(div);
+
+}
+
+}
+
+update();saves();
+
+</script>
+
+</body>
+
+</html>
